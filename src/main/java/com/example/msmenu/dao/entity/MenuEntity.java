@@ -43,7 +43,8 @@ public class MenuEntity {
 
     BigDecimal price;
 
-    Boolean available;
+    @Builder.Default
+    Boolean available = false;
 
     @CreationTimestamp
     LocalDateTime createdAt;

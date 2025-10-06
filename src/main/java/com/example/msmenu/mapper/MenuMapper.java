@@ -2,9 +2,12 @@ package com.example.msmenu.mapper;
 
 import com.example.msmenu.dao.entity.MenuEntity;
 import com.example.msmenu.dto.request.CreateMenuRequest;
-import com.example.msmenu.dto.response.MenuResponse;
 import com.example.msmenu.dto.request.UpdateMenuRequest;
-import com.example.msmenu.enums.Status;
+import com.example.msmenu.dto.response.MenuResponse;
+import org.apache.commons.lang3.StringUtils;
+
+import static com.example.msmenu.enums.Status.ACTIVE;
+import static com.example.msmenu.enums.Status.IN_PROGRESS;
 
 public enum MenuMapper {
 
@@ -12,7 +15,7 @@ public enum MenuMapper {
 
     public MenuEntity requestToEntity(CreateMenuRequest request) {
         return MenuEntity.builder()
-                .status(Status.ACTIVE)
+                .status(ACTIVE)
                 .restaurantId(request.getRestaurantId())
                 .title(request.getTitle())
                 .price(request.getPrice())
@@ -33,12 +36,12 @@ public enum MenuMapper {
     }
 
     public void updateMenu(MenuEntity entity, UpdateMenuRequest request) {
-        entity.setStatus(Status.IN_PROGRESS);
+        entity.setStatus(IN_PROGRESS);
 
         if (request.getRestaurantId() != null) {
             entity.setRestaurantId(request.getRestaurantId());
         }
-        if (request.getTitle() != null && !request.getTitle().isEmpty()) {
+        if (StringUtils.isNotEmpty(request.getTitle())) {
             entity.setTitle(request.getTitle());
         }
         if (request.getPrice() != null) {

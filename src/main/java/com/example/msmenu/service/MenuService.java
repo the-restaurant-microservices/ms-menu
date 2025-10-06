@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static com.example.msmenu.enums.Status.DELETED;
 import static com.example.msmenu.mapper.MenuMapper.MENU_MAPPER;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -45,14 +46,12 @@ public class MenuService {
     }
 
     public MenuResponse findById(Long id) {
-        MenuEntity menu = menuRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Menu not found with id: " + id));
+        MenuEntity menu = getMenuOrThrow(id);
         return MENU_MAPPER.entityToResponse(menu);
     }
 
     public MenuResponse update(Long id, UpdateMenuRequest request) {
-        MenuEntity menu = menuRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Menu not found with id: " + id));
+        MenuEntity menu = getMenuOrThrow(id);
 
         restaurantClient.getRestaurantById(request.getRestaurantId());
 
@@ -63,16 +62,17 @@ public class MenuService {
     }
 
     public void delete(Long id) {
-        if (!menuRepository.existsById(id)) {
-            throw new NotFoundException("Menu not found with id: " + id);
-        }
-        menuRepository.deleteById(id);
+        MenuEntity menu = getMenuOrThrow(id);
+
+        menu.setStatus(DELETED);
+
+        menuRepository.save(menu);
     }
 
     public PaymentResponse orderFood(OrderRequest orderRequest) {
         List<MenuEntity> items = menuRepository.findAllById(orderRequest.getMenuItemIds());
         if (items.isEmpty()) {
-            throw new RuntimeException("Menu items not found");
+            throw new NotFoundException("Menu items not found");
         }
         BigDecimal totalPrice = items.stream()
                 .map(MenuEntity::getPrice)
@@ -85,4 +85,10 @@ public class MenuService {
 
         return paymentClient.makePayment(paymentRequest);
     }
+
+    private MenuEntity getMenuOrThrow(Long id) {
+        return menuRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Menu not found with id: " + id));
+    }
+
 }
